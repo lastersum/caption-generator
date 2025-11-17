@@ -9,7 +9,7 @@ from openai import OpenAI
 from prompts import SYSTEM_PROMPT
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from db import SessionLocal
+from database import SessionLocal
 from models import User
 from auth_utils import hash_password, verify_password, create_access_token, decode_token
 from pydantic import BaseModel, EmailStr
