@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Caption Proje – Giriş / Kayıt</title>
+  <meta name="description" content="Caption Proje için giriş yap veya hızlıca hesap oluştur." />
+  <style>
+    :root {
+      --bg: #050816;
+      --bg-soft: #0b1020;
+      --card: #111827;
+      --card-soft: #1f2937;
+      --accent: #6366f1;
+      --accent-soft: rgba(99, 102, 241, 0.15);
+      --accent-strong: #4f46e5;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --border: #1f2937;
+      --danger: #f97373;
+      --success: #4ade80;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.75);
+      --radius-xl: 18px;
+      --radius-2xl: 26px;
+      --radius-full: 999px;
+      --transition: 0.2s ease-out;
+      --max-width: 1120px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #111827 0, #020617 55%, #000 100%);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .container {
+      width: 100%;
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 1.25rem;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      backdrop-filter: blur(22px);
+      background: linear-gradient(
+        to bottom,
+        rgba(2, 6, 23, 0.9),
+        rgba(2, 6, 23, 0.55),
+        transparent
+      );
+      border-bottom: 1px solid rgba(15, 23, 42, 0.75);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.75rem 0.75rem;
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .logo-circle {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 0, #a5b4fc, #4f46e5 45%, #1d1b60);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 24px rgba(129, 140, 248, 0.6);
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+
+    .logo-title {
+      font-size: 0.92rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .logo-sub {
+      font-size: 0.68rem;
+      color: var(--muted);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.4rem;
+    }
+
+    .nav-link {
+      font-size: 0.82rem;
+      color: var(--muted);
+      padding: 0.3rem 0;
+      position: relative;
+      cursor: pointer;
+      transition: color var(--transition);
+    }
+
+    .nav-link::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -4px;
+      width: 0;
+      height: 2px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #6366f1, #a855f7);
+      transition: width var(--transition);
+    }
+
+    .nav-link:hover {
+      color: #e5e7eb;
+    }
+
+    .nav-link:hover::after {
+      width: 100%;
+    }
+
+    .nav-link.active {
+      color: #e5e7eb;
+    }
+
+    .nav-link.active::after {
+      width: 100%;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-full);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--text);
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background var(--transition), border-color var(--transition),
+        transform var(--transition), box-shadow var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      background: rgba(30, 64, 175, 0.6);
+      border-color: rgba(129, 140, 248, 0.9);
+      transform: translateY(-1px);
+      box-shadow: 0 14px 35px rgba(30, 64, 175, 0.4);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      border-color: transparent;
+      box-shadow: 0 16px 40px rgba(79, 70, 229, 0.55);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px) translateX(0.5px);
+      background: linear-gradient(135deg, #4f46e5, #8b5cf6);
+      box-shadow: 0 18px 46px rgba(79, 70, 229, 0.7);
+    }
+
+    .nav-badge {
+      padding: 0.18rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid rgba(52, 211, 153, 0.6);
+      color: #6ee7b7;
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      background: rgba(6, 95, 70, 0.22);
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+      .nav {
+        padding-inline: 0.35rem;
+      }
+    }
+
+    main {
+      flex: 1;
+      padding: 2.5rem 0 3.5rem;
+    }
+
+    .auth-wrapper {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    @media (min-width: 900px) {
+      .auth-wrapper {
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+        align-items: center;
+      }
+    }
+
+    .auth-copy {
+      padding-right: 0.5rem;
+    }
+
+    .auth-eyebrow {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #a5b4fc;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .auth-eyebrow-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #6366f1;
+      box-shadow: 0 0 12px rgba(129, 140, 248, 0.8);
+    }
+
+    .auth-title {
+      font-size: clamp(1.8rem, 3vw, 2.1rem);
+      line-height: 1.2;
+      font-weight: 700;
+      margin-bottom: 0.6rem;
+    }
+
+    .auth-title span {
+      background: linear-gradient(120deg, #e5e7eb, #a5b4fc, #c4b5fd);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .auth-subtitle {
+      font-size: 0.9rem;
+      color: var(--muted);
+      max-width: 26rem;
+      margin-bottom: 1rem;
+    }
+
+    .auth-bullets {
+      font-size: 0.8rem;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .auth-bullet {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .auth-bullet-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(129, 140, 248, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      color: #a5b4fc;
+      flex-shrink: 0;
+    }
+
+    .auth-card {
+      border-radius: var(--radius-2xl);
+      padding: 1.2rem 1.15rem 1.1rem;
+      background: radial-gradient(circle at top left, #111827, #020617 55%, #020617);
+      border: 1px solid rgba(55, 65, 81, 0.95);
+      box-shadow: var(--shadow-soft);
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .auth-tabs {
+      display: flex;
+      gap: 0.4rem;
+      padding: 0.15rem;
+      border-radius: var(--radius-full);
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(31, 41, 55, 0.95);
+      margin-bottom: 1rem;
+    }
+
+    .auth-tab {
+      flex: 1;
+      font-size: 0.78rem;
+      padding: 0.35rem 0.6rem;
+      border-radius: var(--radius-full);
+      text-align: center;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      transition: background var(--transition), color var(--transition),
+        box-shadow var(--transition), transform var(--transition);
+    }
+
+    .auth-tab.active {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #e5e7eb;
+      box-shadow: 0 12px 30px rgba(79, 70, 229, 0.7);
+      transform: translateY(-0.5px);
+    }
+
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .field-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .field-label span {
+      color: #a5b4fc;
+      font-size: 0.72rem;
+      margin-left: 0.1rem;
+    }
+
+    .field-input {
+      width: 100%;
+      padding: 0.5rem 0.55rem;
+      border-radius: 10px;
+      border: 1px solid rgba(55, 65, 81, 0.95);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text);
+      font-size: 0.8rem;
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition),
+        background var(--transition), transform var(--transition);
+    }
+
+    .field-input:focus {
+      border-color: rgba(129, 140, 248, 0.95);
+      box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.6);
+      background: rgba(15, 23, 42, 0.98);
+      transform: translateY(-0.5px);
+    }
+
+    .field-hint {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .auth-actions {
+      margin-top: 0.4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .auth-secondary {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .auth-secondary button {
+      border: none;
+      background: none;
+      color: #a5b4fc;
+      font-size: 0.75rem;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .auth-secondary button:hover {
+      text-decoration: underline;
+    }
+
+    .auth-note {
+      margin-top: 0.4rem;
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .auth-error {
+      margin-top: 0.3rem;
+      font-size: 0.75rem;
+      color: #fecaca;
+      background: rgba(127, 29, 29, 0.6);
+      border-radius: 10px;
+      padding: 0.4rem 0.5rem;
+      border: 1px solid rgba(248, 113, 113, 0.8);
+      display: none;
+    }
+
+    .auth-success {
+      margin-top: 0.3rem;
+      font-size: 0.75rem;
+      color: #bbf7d0;
+      background: rgba(22, 101, 52, 0.6);
+      border-radius: 10px;
+      padding: 0.4rem 0.5rem;
+      border: 1px solid rgba(52, 211, 153, 0.8);
+      display: none;
+    }
+
+    footer {
+      border-top: 1px solid rgba(15, 23, 42, 0.9);
+      background: radial-gradient(circle at top, #020617, #020617 50%, #000);
+      padding: 1.1rem 0 1.6rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .footer-link {
+      cursor: pointer;
+    }
+
+    .footer-link:hover {
+      color: #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="container">
+      <nav class="nav">
+        <div class="nav-left">
+          <div class="logo-circle">C</div>
+          <div class="logo-text">
+            <div class="logo-title">Caption Proje</div>
+            <div class="logo-sub">YKS için caption aracı</div>
+          </div>
+        </div>
+
+        <div class="nav-links">
+          <a href="/auth" class="nav-link active">Giriş / Kayıt</a>
+        </div>
+
+        <div class="nav-right">
+          <div class="nav-badge">YKS Beta • ₺49/ay</div>
+          <a href="/#fiyat" class="btn">Fiyatı gör</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <div class="auth-wrapper">
+        <div class="auth-copy">
+          <div class="auth-eyebrow">
+            <span class="auth-eyebrow-dot"></span>
+            Hesabını oluştur
+          </div>
+          <h1 class="auth-title">
+            Caption Proje’ye <span>giriş yap</span> veya
+            <span>hızlıca kayıt ol.</span>
+          </h1>
+          <p class="auth-subtitle">
+            Uygulamayı kullanabilmek için önce basit bir hesap oluşturman gerekiyor.
+            E-posta ve şifre ile giriş yaptıktan sonra caption üretme ekranına
+            yönlendirileceksin.
+          </p>
+
+          <div class="auth-bullets">
+            <div class="auth-bullet">
+              <div class="auth-bullet-dot">✓</div>
+              <div>Hesap oluşturma ücretsizdir, ödeme sadece beta planı için geçerlidir.</div>
+            </div>
+            <div class="auth-bullet">
+              <div class="auth-bullet-dot">✓</div>
+              <div>Hesabınla farklı cihazlardan da giriş yapabilirsin.</div>
+            </div>
+            <div class="auth-bullet">
+              <div class="auth-bullet-dot">✓</div>
+              <div>İleride abonelik süreni yönetmek için bu hesap kullanılacaktır.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="auth-card">
+          <div class="auth-tabs">
+            <button class="auth-tab active" data-mode="register">Kayıt ol</button>
+            <button class="auth-tab" data-mode="login">Giriş yap</button>
+          </div>
+
+          <form id="auth-form" class="auth-form" autocomplete="off">
+            <div class="field">
+              <label class="field-label" for="email">
+                E-posta adresi <span>*</span>
+              </label>
+              <input type="email" id="email" class="field-input" required />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="password">
+                Şifre <span>*</span>
+              </label>
+              <input type="password" id="password" class="field-input" required />
+              <div class="field-hint" id="password-hint">
+                En az 8 karakter, mümkünse harf + rakam karışık.
+              </div>
+            </div>
+
+            <div class="field" id="password-confirm-field">
+              <label class="field-label" for="passwordConfirm">
+                Şifre (tekrar) <span>*</span>
+              </label>
+              <input type="password" id="passwordConfirm" class="field-input" />
+            </div>
+
+            <div class="auth-actions">
+              <button type="submit" class="btn btn-primary" id="auth-submit">
+                Kayıt ol ve devam et
+              </button>
+
+              <div class="auth-secondary">
+                <span id="switch-copy">Zaten hesabın var mı?</span>
+                <button type="button" id="switch-mode">Giriş yap</button>
+              </div>
+
+              <div class="auth-note">
+                Giriş yaparak kullanım koşullarını ve ileride eklenecek gizlilik
+                metnini kabul etmiş sayılırsın.
+              </div>
+
+              <div class="auth-error" id="auth-error"></div>
+              <div class="auth-success" id="auth-success"></div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <div>© <span id="year"></span> Caption Proje. Tüm hakları saklıdır.</div>
+        <div class="footer-links">
+          <span class="footer-link">Kullanım koşulları (yakında)</span>
+          <span class="footer-link">Gizlilik (yakında)</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script>
+  // Backend URL
+  const API_BASE = "https://caption-generator-production-b824.up.railway.app/"; // BURAYI kendi URL'inle degistir
+
+  // Yil
+  document.getElementById("year").textContent = new Date().getFullYear();
+
+  const tabs = document.querySelectorAll(".auth-tab");
+  const form = document.getElementById("auth-form");
+  const passwordConfirmField = document.getElementById("password-confirm-field");
+  const submitBtn = document.getElementById("auth-submit");
+  const switchBtn = document.getElementById("switch-mode");
+  const switchCopy = document.getElementById("switch-copy");
+  const errorBox = document.getElementById("auth-error");
+  const successBox = document.getElementById("auth-success");
+  let mode = "register"; // 'register' veya 'login'
+
+  function showError(message) {
+    if (!message) {
+      errorBox.style.display = "none";
+      errorBox.textContent = "";
+      return;
+    }
+    errorBox.textContent = message;
+    errorBox.style.display = "block";
+  }
+
+  function showSuccess(message) {
+    if (!message) {
+      successBox.style.display = "none";
+      successBox.textContent = "";
+      return;
+    }
+    successBox.textContent = message;
+    successBox.style.display = "block";
+  }
+
+  function setMode(nextMode) {
+    mode = nextMode;
+
+    tabs.forEach((tab) => {
+      if (tab.dataset.mode === mode) {
+        tab.classList.add("active");
+      } else {
+        tab.classList.remove("active");
+      }
+    });
+
+    if (mode === "register") {
+      passwordConfirmField.style.display = "flex";
+      submitBtn.textContent = "Kayit ol ve devam et";
+      switchCopy.textContent = "Zaten hesabin var mi?";
+      switchBtn.textContent = "Giris yap";
+    } else {
+      passwordConfirmField.style.display = "none";
+      submitBtn.textContent = "Giris yap ve devam et";
+      switchCopy.textContent = "Hesabin yok mu?";
+      switchBtn.textContent = "Kayit ol";
+    }
+
+    showError("");
+    showSuccess("");
+  }
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      setMode(tab.dataset.mode);
+    });
+  });
+
+  switchBtn.addEventListener("click", () => {
+    setMode(mode === "register" ? "login" : "register");
+  });
+
+  async function registerUser(email, password) {
+    try {
+      const res = await fetch(API_BASE + "/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!res.ok) {
+        let data = {};
+        try {
+          data = await res.json();
+        } catch (e) {}
+        const msg = data.detail || "Kayit basarisiz.";
+        showError(msg);
+        return false;
+      }
+
+      showSuccess("Kayit basarili. Giris yapiliyor...");
+      return true;
+    } catch (err) {
+      console.error(err);
+      showError("Sunucuya baglanirken hata olustu.");
+      return false;
+    }
+  }
+
+  async function loginUser(email, password) {
+    try {
+      const body = new URLSearchParams();
+      body.append("username", email);
+      body.append("password", password);
+
+      const res = await fetch(API_BASE + "/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body,
+      });
+
+      if (!res.ok) {
+        let data = {};
+        try {
+          data = await res.json();
+        } catch (e) {}
+        const msg = data.detail || "Giris basarisiz.";
+        showError(msg);
+        return;
+      }
+
+      const data = await res.json();
+      // JWT token'i kaydet
+      localStorage.setItem("ls_token", data.access_token);
+      localStorage.setItem("ls_email", email);
+
+      showSuccess("Giris basarili. Uygulamaya yonlendiriliyorsun...");
+
+      setTimeout(() => {
+        window.location.href = "https://lastersumcaption.netlify.app/app.html";
+      }, 600);
+    } catch (err) {
+      console.error(err);
+      showError("Sunucuya baglanirken hata olustu.");
+    }
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    showError("");
+    showSuccess("");
+
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const passwordConfirm = document.getElementById("passwordConfirm").value.trim();
+
+    if (!email || !password || (mode === "register" && !passwordConfirm)) {
+      showError("Lutfen zorunlu alanlari doldur.");
+      return;
+    }
+
+    if (mode === "register" && password !== passwordConfirm) {
+      showError("Sifreler birbiriyle uyusmuyor.");
+      return;
+    }
+
+    if (password.length < 8) {
+      showError("Sifre en az 8 karakter olmali.");
+      return;
+    }
+
+    if (mode === "register") {
+      const ok = await registerUser(email, password);
+      if (ok) {
+        // Kayit basariliysa otomatik login
+        await loginUser(email, password);
+      }
+    } else {
+      await loginUser(email, password);
+    }
+  });
+
+  // Sayfa acildiginda zaten token varsa direkt app'e atmak istersen:
+  (function checkLoggedIn() {
+    const token = localStorage.getItem("ls_token");
+    if (token) {
+      // Kullanici zaten login, direkt app'e al
+      // Istersen burada /auth/me ile token dogrulama da yapabilirsin
+      // simdilik direkt yonlendirelim
+      // window.location.href = "https://lastersumcaption.netlify.app/app.html";
+    }
+  })();
+</script>
+
+</body>
+</html>

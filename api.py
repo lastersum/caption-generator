@@ -1,14 +1,90 @@
 import os
-
+from db import Base, engine
+from models import User
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from openai import OpenAI
 from prompts import SYSTEM_PROMPT
+from fastapi import Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from db import SessionLocal
+from models import User
+from auth_utils import hash_password, verify_password, create_access_token, decode_token
+from pydantic import BaseModel, EmailStr
+from fastapi.security import OAuth2PasswordBearer
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")  # sadece dokumantasyon icin
+
+def get_current_user(token: str = Depends(oauth2_scheme),
+                     db: Session = Depends(get_db)) -> User:
+    payload = decode_token(token)
+    if not payload or "sub" not in payload:
+        raise HTTPException(status_code=401, detail="Gecersiz token.")
+    user_id = int(payload["sub"])
+    user = db.query(User).get(user_id)
+    if not user:
+        raise HTTPException(status_code=401, detail="Kullanici bulunamadi.")
+    return user
+
+@app.get("/auth/me", response_model=UserInfo)
+def me(current_user: User = Depends(get_current_user)):
+    return UserInfo(id=current_user.id, email=current_user.email)
+
+# DB dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+@app.post("/auth/register", response_model=TokenResponse)
+def register(req: RegisterRequest, db: Session = Depends(get_db)):
+    existing = db.query(User).filter(User.email == req.email).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Bu email ile zaten hesap var.")
+
+    user = User(
+        email=req.email,
+        password_hash=hash_password(req.password),
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    token = create_access_token({"sub": str(user.id)})
+    return TokenResponse(access_token=token)
+
+@app.post("/auth/login", response_model=TokenResponse)
+def login(req: LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == req.email).first()
+    if not user or not verify_password(req.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Email veya sifre hatali.")
+
+    token = create_access_token({"sub": str(user.id)})
+    return TokenResponse(access_token=token)
 
 # .env dosyasını yükle
 load_dotenv()
+class RegisterRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+class UserInfo(BaseModel):
+    id: int
+    email: EmailStr
+
+
+Base.metadata.create_all(bind=engine)
 
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:

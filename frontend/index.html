@@ -1,425 +1,1313 @@
 ﻿<!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Caption & Hashtag Generator</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    * {
-      box-sizing: border-box;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Caption Proje – Otomatik Caption Üretici</title>
+    <meta name="description" content="Instagram ve TikTok için saniyeler içinde Türkçe caption üreten akıllı araç." />
+    <style>
+        /* ---------- GENEL LAYOUT ---------- */
+        :root {
+            --bg: #050816;
+            --bg-soft: #0b1020;
+            --card: #111827;
+            --card-soft: #1f2937;
+            --accent: #6366f1;
+            --accent-soft: rgba(99, 102, 241, 0.15);
+            --accent-strong: #4f46e5;
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --border: #1f2937;
+            --danger: #f97373;
+            --success: #4ade80;
+            --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.75);
+            --radius-xl: 18px;
+            --radius-2xl: 26px;
+            --radius-full: 999px;
+            --transition: 0.2s ease-out;
+            --max-width: 1120px;
+        }
 
-    body {
-      margin: 0;
-      padding: 0;
-      background: #343541;
-      color: #e3e3e8;
-      display: flex;
-      justify-content: center;
-      align-items: stretch;
-      min-height: 100vh;
-    }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    .app {
-      width: 100%;
-      max-width: 900px;
-      display: flex;
-      flex-direction: column;
-      border-left: 1px solid #202123;
-      border-right: 1px solid #202123;
-      background: #343541;
-    }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #111827 0, #020617 55%, #000 100%);
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+        }
 
-    .header {
-      padding: 12px 16px;
-      border-bottom: 1px solid #202123;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      background: #343541;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
 
-    .header-left {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
+        img {
+            max-width: 100%;
+            display: block;
+        }
 
-    .header-title {
-      font-size: 0.95rem;
-      font-weight: 600;
-    }
+        .page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
 
-    .header-subtitle {
-      font-size: 0.78rem;
-      color: #acacb6;
-    }
+        .container {
+            width: 100%;
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 1.25rem;
+        }
 
-    .model-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 9px;
-      border-radius: 999px;
-      background: #202123;
-      border: 1px solid #3f3f46;
-      font-size: 0.72rem;
-      color: #a1a1aa;
-      white-space: nowrap;
-    }
+        /* ---------- HEADER / NAVBAR (ORTAK) ---------- */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            backdrop-filter: blur(22px);
+            background: linear-gradient( to bottom, rgba(2, 6, 23, 0.9), rgba(2, 6, 23, 0.55), transparent );
+            border-bottom: 1px solid rgba(15, 23, 42, 0.75);
+        }
 
-    .model-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: #22c55e;
-    }
+        .nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0.75rem 0.75rem;
+        }
 
-    .main {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px 20px 110px;
-    }
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
 
-    .meta-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      font-size: 0.80rem;
-      color: #9ca3af;
-      padding-right: 6px;
-      padding-left: 2px;
-    }
+        .logo-circle {
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            background: radial-gradient(circle at 30% 0, #a5b4fc, #4f46e5 45%, #1d1b60);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 24px rgba(129, 140, 248, 0.6);
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
 
-    .meta-label {
-      font-weight: 500;
-      color: #d1d5db;
-      opacity: 0.85;
-    }
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
 
-    .message {
-      max-width: 100%;
-      border-radius: 16px;
-      padding: 18px 20px;
-      background: #444654;
-      font-size: 0.9rem;
-      line-height: 1.5;
-      white-space: pre-wrap;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
+        .logo-title {
+            font-size: 0.92rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
 
-    .message.placeholder {
-      opacity: 0.6;
-      font-style: italic;
-    }
+        .logo-sub {
+            font-size: 0.68rem;
+            color: var(--muted);
+        }
 
-    .input-bar {
-      position: fixed;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: 0;
-      width: 100%;
-      max-width: 900px;
-      padding: 10px 16px 14px;
-      background: linear-gradient(to top, #343541 50%, rgba(52,53,65,0.75));
-      border-top: 1px solid #202123;
-      backdrop-filter: blur(6px);
-    }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 1.4rem;
+        }
 
-    .input-inner {
-      background: #40414f;
-      border-radius: 16px;
-      padding: 10px 10px 8px;
-      border: 1px solid #565869;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.25);
-    }
+        .nav-link {
+            font-size: 0.82rem;
+            color: var(--muted);
+            padding: 0.3rem 0;
+            position: relative;
+            cursor: pointer;
+            transition: color var(--transition);
+        }
 
-    .input-row-top {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
+            .nav-link::after {
+                content: "";
+                position: absolute;
+                left: 0;
+                bottom: -4px;
+                width: 0;
+                height: 2px;
+                border-radius: 999px;
+                background: linear-gradient(90deg, #6366f1, #a855f7);
+                transition: width var(--transition);
+            }
 
-    .input-row-bottom {
-      display: flex;
-      align-items: flex-end;
-      gap: 8px;
-      margin-top: 4px;
-    }
+            .nav-link:hover {
+                color: #e5e7eb;
+            }
 
-    label {
-      font-size: 0.78rem;
-      color: #d4d4d8;
-    }
+                .nav-link:hover::after {
+                    width: 100%;
+                }
 
-    .field-group {
-      flex: 1;
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
 
-    input[type="text"],
-    textarea {
-      width: 100%;
-      border-radius: 10px;
-      border: 1px solid #565869;
-      background: #343541;
-      color: #ececf1;
-      font-size: 0.86rem;
-      padding: 7px 9px;
-      outline: none;
-      resize: vertical;
-    }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-full);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            background: rgba(15, 23, 42, 0.8);
+            color: var(--text);
+            font-size: 0.78rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background var(--transition), border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+            white-space: nowrap;
+        }
 
-    textarea {
-      min-height: 56px;
-      max-height: 120px;
-    }
+            .btn:hover {
+                background: rgba(30, 64, 175, 0.6);
+                border-color: rgba(129, 140, 248, 0.9);
+                transform: translateY(-1px);
+                box-shadow: 0 14px 35px rgba(30, 64, 175, 0.4);
+            }
 
-    input[type="text"]:focus,
-    textarea:focus {
-      border-color: #8e8ff5;
-      box-shadow: 0 0 0 1px #8e8ff5;
-    }
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            border-color: transparent;
+            box-shadow: 0 16px 40px rgba(79, 70, 229, 0.55);
+        }
 
-    button {
-      border-radius: 999px;
-      border: none;
-      padding: 6px 14px;
-      font-size: 0.83rem;
-      font-weight: 500;
-      cursor: pointer;
-      background: linear-gradient(135deg, #10a37f, #0d8f6f);
-      color: #f9fafb;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      white-space: nowrap;
-      transition: transform 0.05s ease-out, box-shadow 0.05s ease-out, opacity 0.1s;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.35);
-    }
+            .btn-primary:hover {
+                transform: translateY(-1px) translateX(0.5px);
+                background: linear-gradient(135deg, #4f46e5, #8b5cf6);
+                box-shadow: 0 18px 46px rgba(79, 70, 229, 0.7);
+            }
 
-    button:hover:not(:disabled) {
-      background: linear-gradient(135deg, #0d8f6f, #0b7d60);
-      transform: translateY(-1px);
-      box-shadow: 0 6px 14px rgba(0,0,0,0.45);
-    }
+        .btn-ghost {
+            background: rgba(15, 23, 42, 0.8);
+        }
 
-    button:active:not(:disabled) {
-      transform: translateY(0);
-      box-shadow: 0 3px 8px rgba(0,0,0,0.35);
-    }
+        .nav-badge {
+            padding: 0.18rem 0.55rem;
+            border-radius: 999px;
+            border: 1px solid rgba(52, 211, 153, 0.6);
+            color: #6ee7b7;
+            font-size: 0.62rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            background: rgba(6, 95, 70, 0.22);
+        }
 
-    button:disabled {
-      opacity: 0.65;
-      cursor: default;
-      box-shadow: none;
-      transform: none;
-    }
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
 
-    .status {
-      font-size: 0.76rem;
-      color: #a1a1aa;
-      flex: 1;
-      text-align: right;
-    }
+            .nav {
+                padding-inline: 0.35rem;
+            }
+        }
 
-    .status.error {
-      color: #fca5a5;
-    }
+        /* ---------- ORTAK BÖLÜM STİLLERİ ---------- */
+        main {
+            flex: 1;
+            padding: 1.25rem 0 3.5rem;
+        }
 
-    .hint {
-      font-size: 0.7rem;
-      color: #9ca3af;
-    }
+        .section {
+            padding: 3.5rem 0;
+        }
 
-    code {
-      font-size: 0.78rem;
-      background: #27272f;
-      padding: 1px 4px;
-      border-radius: 4px;
-    }
+        .section-header {
+            margin-bottom: 2rem;
+            max-width: 580px;
+        }
 
-    @media (max-width: 640px) {
-      .main {
-        padding: 10px 10px 110px;
-      }
+        .section-eyebrow {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            color: #a5b4fc;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            margin-bottom: 0.5rem;
+        }
 
-      .header {
-        padding-inline: 10px;
-      }
+        .section-eyebrow-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: #6366f1;
+            box-shadow: 0 0 12px rgba(129, 140, 248, 0.8);
+        }
 
-      .input-bar {
-        padding-inline: 10px;
-      }
+        .section-title {
+            font-size: 1.7rem;
+            line-height: 1.25;
+            font-weight: 650;
+            margin-bottom: 0.4rem;
+        }
 
-      .header-title {
-        font-size: 0.9rem;
-      }
-    }
-  </style>
+        .section-subtitle {
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+
+        .section-grid {
+            display: grid;
+            gap: 1.3rem;
+        }
+
+        @media (min-width: 900px) {
+            .section {
+                padding: 4rem 0;
+            }
+
+            .section-grid-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .section-grid-3 {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        .pill-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-bottom: 0.9rem;
+        }
+
+        .pill {
+            padding: 0.16rem 0.6rem;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            font-size: 0.67rem;
+            color: var(--muted);
+            background: rgba(15, 23, 42, 0.9);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .pill-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 999px;
+            background: #22c55e;
+        }
+
+        /* ---------- HERO ---------- */
+        .hero {
+            padding-top: 2rem;
+        }
+
+        .hero-inner {
+            display: grid;
+            gap: 2rem;
+        }
+
+        @media (min-width: 900px) {
+            .hero-inner {
+                grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+                align-items: center;
+            }
+        }
+
+        .hero-title {
+            font-size: clamp(2.15rem, 4vw, 2.8rem);
+            font-weight: 750;
+            line-height: 1.12;
+            margin-bottom: 0.7rem;
+            letter-spacing: -0.03em;
+        }
+
+        .hero-gradient {
+            background: linear-gradient(120deg, #e5e7eb, #a5b4fc, #c4b5fd);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .hero-sub {
+            font-size: 0.95rem;
+            color: var(--muted);
+            max-width: 28rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .hero-cta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .hero-hint {
+            font-size: 0.75rem;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex: 1 0 100%; /* butonlardan sonra tam satır kaplar */
+            margin-top: 0.2rem;
+            max-width: 380px;
+        }
+
+            .hero-hint span {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 30px;
+                height: 30px;
+                border-radius: 999px;
+                border: 1px solid rgba(148, 163, 184, 0.3);
+                font-size: 0.7rem;
+                color: #a5b4fc;
+            }
+
+        .hero-metrics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-top: 1.3rem;
+        }
+
+        .metric {
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+        }
+
+        .metric-value {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .metric-label {
+            font-size: 0.72rem;
+            color: var(--muted);
+        }
+
+        /* ---------- HERO PHONE CARD ---------- */
+        .hero-phone-wrap {
+            display: flex;
+            justify-content: center;
+        }
+
+        .phone-shell {
+            position: relative;
+            width: min(310px, 90vw);
+            border-radius: 34px;
+            padding: 0.7rem;
+            background: radial-gradient(circle at 0 0, #4f46e5, #020617 50%);
+            box-shadow: 0 25px 70px rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+
+        .phone-inner {
+            border-radius: 26px;
+            padding: 0.85rem 0.85rem 1rem;
+            background: radial-gradient(circle at top, #020617, #020617 42%, #0b1120);
+            border: 1px solid rgba(30, 64, 175, 0.7);
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+        }
+
+        .phone-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: var(--muted);
+        }
+
+        .phone-caption-box {
+            margin-top: 0.2rem;
+            padding: 0.7rem;
+            border-radius: 16px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(55, 65, 81, 0.9);
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.9);
+        }
+
+        .phone-caption-label {
+            font-size: 0.68rem;
+            color: var(--muted);
+            margin-bottom: 0.35rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            .phone-caption-label span {
+                font-size: 0.65rem;
+                color: #a5b4fc;
+            }
+
+        .phone-caption-text {
+            font-size: 0.78rem;
+            line-height: 1.45;
+        }
+
+        .phone-caption-tagline {
+            margin-top: 0.4rem;
+            font-size: 0.7rem;
+            color: var(--muted);
+        }
+
+        .phone-bottom-row {
+            margin-top: 0.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+
+        .phone-chip-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+
+        .chip {
+            font-size: 0.63rem;
+            padding: 0.16rem 0.55rem;
+            border-radius: 999px;
+            background: rgba(30, 64, 175, 0.5);
+            border: 1px solid rgba(129, 140, 248, 0.7);
+        }
+
+        .phone-cta-mini {
+            font-size: 0.68rem;
+            padding: 0.26rem 0.7rem;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            background: rgba(15, 23, 42, 0.9);
+        }
+
+        .phone-floating-badge {
+            position: absolute;
+            right: -12px;
+            top: 24%;
+            padding: 0.3rem 0.7rem;
+            border-radius: 999px;
+            background: rgba(22, 163, 74, 0.95);
+            font-size: 0.65rem;
+            color: #ecfdf5;
+            box-shadow: 0 16px 42px rgba(21, 128, 61, 0.6);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .phone-floating-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            background: #bbf7d0;
+        }
+
+        @media (max-width: 480px) {
+            .phone-floating-badge {
+                display: none;
+            }
+        }
+
+        /* ---------- “KİMLER İÇİN?” BÖLÜMÜ ---------- */
+        .card {
+            border-radius: var(--radius-xl);
+            padding: 1.1rem 1.05rem;
+            background: radial-gradient(circle at top left, #020617, #020617 40%, #020617);
+            border: 1px solid rgba(31, 41, 55, 0.95);
+            box-shadow: 0 18px 50px rgba(15, 23, 42, 0.9);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .card-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 999px;
+            background: radial-gradient(circle at 30% 0, #4f46e5, #1f2937);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 550;
+        }
+
+        .card-body {
+            font-size: 0.82rem;
+            color: var(--muted);
+            margin-bottom: 0.4rem;
+        }
+
+        .card-tag {
+            font-size: 0.7rem;
+            color: #a5b4fc;
+        }
+
+        /* ---------- ÖZELLİKLER ---------- */
+        .feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+        }
+
+        .feature-item {
+            display: flex;
+            gap: 0.5rem;
+            font-size: 0.82rem;
+            color: var(--muted);
+        }
+
+        .feature-bullet {
+            margin-top: 0.19rem;
+            width: 18px;
+            height: 18px;
+            border-radius: 999px;
+            border: 1px solid rgba(129, 140, 248, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: #a5b4fc;
+            flex-shrink: 0;
+        }
+
+        .feature-strong {
+            color: #e5e7eb;
+        }
+
+        .feature-box {
+            border-radius: var(--radius-xl);
+            padding: 1rem;
+            background: radial-gradient(circle at top left, #020617, #020617 45%, #0b1120);
+            border: 1px solid rgba(31, 41, 55, 0.95);
+            box-shadow: var(--shadow-soft);
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+            .feature-box strong {
+                color: #e5e7eb;
+                font-weight: 500;
+            }
+
+        /* ---------- NASIL ÇALIŞIR ---------- */
+        .steps {
+            display: grid;
+            gap: 0.9rem;
+        }
+
+        @media (min-width: 720px) {
+            .steps {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        .step {
+            border-radius: var(--radius-xl);
+            padding: 0.85rem 0.9rem;
+            background: linear-gradient( 145deg, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.96) );
+            border: 1px solid rgba(31, 41, 55, 0.95);
+            box-shadow: 0 14px 40px rgba(15, 23, 42, 0.9);
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .step-number {
+            width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            border: 1px solid rgba(129, 140, 248, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: #c7d2fe;
+            margin-bottom: 0.35rem;
+        }
+
+        .step-title {
+            font-size: 0.88rem;
+            color: #e5e7eb;
+            margin-bottom: 0.2rem;
+            font-weight: 550;
+        }
+
+        /* ---------- FİYATLANDIRMA ---------- */
+        .pricing-grid {
+            display: grid;
+            gap: 1.1rem;
+        }
+
+        @media (min-width: 720px) {
+            .pricing-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        .price-card {
+            border-radius: var(--radius-2xl);
+            padding: 1.1rem 1.1rem 1rem;
+            background: radial-gradient(circle at top left, #111827, #020617 45%, #020617);
+            border: 1px solid rgba(55, 65, 81, 0.95);
+            box-shadow: var(--shadow-soft);
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .price-label-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .price-pill {
+            padding: 0.18rem 0.6rem;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(148, 163, 184, 0.7);
+            color: var(--muted);
+            font-size: 0.7rem;
+        }
+
+        .price-highlight {
+            color: #a5b4fc;
+            font-size: 0.7rem;
+        }
+
+        .price-amount {
+            font-size: 1.4rem;
+            font-weight: 650;
+        }
+
+            .price-amount span {
+                font-size: 0.8rem;
+                color: var(--muted);
+                font-weight: 400;
+            }
+
+        .price-desc {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .price-list {
+            list-style: none;
+            font-size: 0.8rem;
+            color: var(--muted);
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            margin: 0.3rem 0 0.4rem;
+        }
+
+            .price-list li::before {
+                content: "•";
+                margin-right: 0.35rem;
+                color: #a5b4fc;
+            }
+
+        .price-card-accent {
+            border-color: rgba(79, 70, 229, 0.95);
+            background: radial-gradient(circle at top left, #111827, #020617 52%, #020617);
+        }
+
+            .price-card-accent::after {
+                content: "";
+                position: absolute;
+                inset: -40%;
+                background: radial-gradient(circle at top, rgba(79, 70, 229, 0.16), transparent 55%);
+                opacity: 0.9;
+                pointer-events: none;
+            }
+
+        /* ---------- SSS ---------- */
+        .faq-grid {
+            display: grid;
+            gap: 0.65rem;
+        }
+
+        .faq-item {
+            border-radius: var(--radius-xl);
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(31, 41, 55, 0.95);
+            overflow: hidden;
+        }
+
+        details {
+            padding: 0.7rem 0.8rem;
+            cursor: pointer;
+        }
+
+        summary {
+            font-size: 0.85rem;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+            summary::-webkit-details-marker {
+                display: none;
+            }
+
+        .faq-answer {
+            margin-top: 0.4rem;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .faq-icon {
+            font-size: 0.9rem;
+            color: #a5b4fc;
+            flex-shrink: 0;
+        }
+
+        /* ---------- FOOTER (ORTAK) ---------- */
+        footer {
+            border-top: 1px solid rgba(15, 23, 42, 0.9);
+            background: radial-gradient(circle at top, #020617, #020617 50%, #000);
+            padding: 1.1rem 0 1.6rem;
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+
+        .footer-inner {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.7rem;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem;
+        }
+
+        .footer-link {
+            cursor: pointer;
+        }
+
+            .footer-link:hover {
+                color: #e5e7eb;
+            }
+    </style>
 </head>
 <body>
-  <div class="app">
-    <header class="header">
-      <div class="header-left">
-        <div class="header-title">Caption &amp; Hashtag Generator</div>
-        <div class="header-subtitle">Nişini ve video açıklamasını yaz, gerisini AI halletsin.</div>
-      </div>
-      <div class="model-pill">
-        <span class="model-dot"></span>
-        <span>local API · 127.0.0.1:8000</span>
-      </div>
-    </header>
+    <div class="page">
+        <!-- HEADER / NAV – BUNU app.html'DE DE AYNI KULLAN -->
+        <header>
+            <div class="container">
+                <nav class="nav">
+                    <div class="nav-left">
+                        <div class="logo-circle">C</div>
+                        <div class="logo-text">
+                            <div class="logo-title">Caption Proje</div>
+                            <div class="logo-sub">Saniyeler içinde Türkçe caption</div>
+                        </div>
+                    </div>
 
-    <main class="main">
-      <div class="meta-row">
-        <span class="meta-label">Assistant</span>
-        <span id="status" class="status">Hazır 🍓</span>
-      </div>
-      <div id="result" class="message placeholder">
-        Henüz bir sonuç yok. Aşağıdaki alana niş ve açıklama yazıp <strong>Enter</strong> veya <strong>Üret</strong> butonuna bas.
-      </div>
-    </main>
+                    <div class="nav-links">
+                        <a href="#kimler-icin" class="nav-link">Kimler için?</a>
+                        <a href="#ozellikler" class="nav-link">Özellikler</a>
+                        <a href="#nasil" class="nav-link">Nasıl çalışır?</a>
+                        <a href="#fiyat" class="nav-link">Fiyatlandırma</a>
+                        <a href="#sss" class="nav-link">SSS</a>
+                    </div>
 
-    <form id="caption-form" class="input-bar">
-      <div class="input-inner">
-        <div class="input-row-top">
-          <div class="field-group">
-            <label for="niche">Niş</label>
-            <input
-              type="text"
-              id="niche"
-              name="niche"
-              placeholder="örn. YKS vlog, korku kesit, oyun..."
-            />
-          </div>
-        </div>
-
-        <div class="input-row-bottom">
-          <div class="field-group">
-            <label for="description">Video / post açıklaması</label>
-            <textarea
-              id="description"
-              name="description"
-              placeholder="Bugün mükemmel çalıştım. Siz nasıl çalıştınız?"
-            ></textarea>
-            <div class="hint">
-              İpucu: Açıklamayı ne kadar net yazarsan caption o kadar iyi çıkar. Ctrl+Enter ile de gönderebilirsin.
+                    <div class="nav-right">
+                        <div class="nav-badge">Beta • Ücretsiz</div>
+                        <a href="app.html" class="btn btn-ghost">Uygulamaya git</a>
+                        <a href="#fiyat" class="btn btn-primary">Hemen dene</a>
+                    </div>
+                </nav>
             </div>
-          </div>
+        </header>
 
-          <button type="submit" id="submit-btn">
-            Üret
-          </button>
-        </div>
-        <div class="hint" style="margin-top:2px; text-align:right;">
-          Backend: <code>POST /generate</code> · FastAPI + OpenAI
-        </div>
-      </div>
-    </form>
-  </div>
+        <main>
+            <!-- HERO -->
+            <section class="hero">
+                <div class="container">
+                    <div class="hero-inner">
+                        <div>
+                            <div class="pill-row">
+                                <div class="pill">
+                                    <span class="pill-dot"></span>
+                                    1 tıkla caption üret
+                                </div>
+                                <div class="pill">Instagram • TikTok • Reels</div>
+                            </div>
 
-  <script>
-    const form = document.getElementById("caption-form");
-    const nicheInput = document.getElementById("niche");
-    const descriptionInput = document.getElementById("description");
-    const resultDiv = document.getElementById("result");
-    const statusSpan = document.getElementById("status");
-    const submitBtn = document.getElementById("submit-btn");
+                            <h1 class="hero-title">
+                                <span class="hero-gradient">Caption düşünme derdini</span><br />
+                                yapay zekâya devret.
+                            </h1>
 
-    const API_URL = "http://127.0.0.1:8000/generate";
+                            <p class="hero-sub">
+                                Sadece video konusunu ve tarzını yaz. Kalan her şeyi Caption Proje halletsin:
+                                hazır kancalar, emojiler, çağrı cümleleri ve hashtag önerileri.
+                            </p>
 
-    async function handleSubmit(event) {
-      if (event) event.preventDefault();
+                            <div class="hero-cta-row">
+                                <a href="app.html" class="btn btn-primary">
+                                    Şimdi caption üret
+                                </a>
+                                <a href="#nasil" class="btn">
+                                    Nasıl çalıştığını gör
+                                </a>
 
-      const niche = nicheInput.value.trim();
-      const description = descriptionInput.value.trim();
 
-      if (!description) {
-        statusSpan.textContent = "Açıklama boş olamaz.";
-        statusSpan.classList.add("error");
-        resultDiv.textContent = "Lütfen en azından kısa bir açıklama yaz.";
-        resultDiv.classList.remove("placeholder");
-        return;
-      }
+                            </div>
 
-      submitBtn.disabled = true;
-      statusSpan.textContent = "Üretiliyor...";
-      statusSpan.classList.remove("error");
-      resultDiv.textContent = "";
-      resultDiv.classList.remove("placeholder");
 
-      try {
-        const response = await fetch(API_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ niche, description }),
-        });
+                            <div class="hero-metrics">
+                                <div class="metric">
+                                    <div class="metric-value">10–15 sn</div>
+                                    <div class="metric-label">Caption oluşturma süresi</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">%100 TR odaklı</div>
+                                    <div class="metric-label">Türkçe içerik & kitlen için</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">&lt; 60 dk</div>
+                                    <div class="metric-label">Tüm hesabın için caption stoğu</div>
+                                </div>
+                            </div>
+                        </div>
 
-        if (!response.ok) {
-          const text = await response.text();
-          statusSpan.textContent = "Sunucu hatası.";
-          statusSpan.classList.add("error");
-          resultDiv.textContent =
-            "Sunucu beklenmeyen bir yanıt verdi.\n\nHTTP " +
-            response.status +
-            ":\n" +
-            text;
-          resultDiv.classList.remove("placeholder");
-          return;
-        }
+                        <div class="hero-phone-wrap">
+                            <div class="phone-shell">
+                                <div class="phone-inner">
+                                    <div class="phone-top">
+                                        <span>@ykslvl3</span>
+                                        <span>Bugün • 19:30</span>
+                                    </div>
 
-        const data = await response.json();
+                                    <div class="phone-caption-box">
+                                        <div class="phone-caption-label">
+                                            <span>Caption önerisi</span>
+                                            <span>Hook • Emojili • TR</span>
+                                        </div>
+                                        <div class="phone-caption-text">
+                                            Hayatını değiştirecek o 120 dakikaya hazırlanırken
+                                            yalnız değilsin. 🔥<br /><br />
+                                            Bugün 3 deneme, 1 tekrar ve 1 adım daha hedefindeki
+                                            bölüme yaklaştın. Şimdi notlarını kapat, telefonu bir
+                                            kenara bırak ve sadece sorulara odaklan. ✍🏻<br /><br />
+                                            Hazırsan yorumlara “devam” yaz, birlikte çalışalım. 🚀
+                                        </div>
+                                        <div class="phone-caption-tagline">
+                                            #yks #tyt #ayt #motivasyon #studytok
+                                        </div>
+                                    </div>
 
-        if (data && data.result) {
-          resultDiv.textContent = data.result;
-          resultDiv.classList.remove("placeholder");
-          statusSpan.textContent = "Hazır 🍓";
-          statusSpan.classList.remove("error");
-        } else {
-          statusSpan.textContent = "Beklenmeyen cevap.";
-          statusSpan.classList.add("error");
-          resultDiv.textContent = "API'den 'result' alanı gelmedi.";
-          resultDiv.classList.remove("placeholder");
-        }
-      } catch (error) {
-        console.error(error);
-        statusSpan.textContent = "Bağlantı hatası.";
-        statusSpan.classList.add("error");
-        resultDiv.textContent =
-          "API'ye ulaşılamadı.\n" +
-          "- uvicorn çalışıyor mu? (uvicorn api:app --reload)\n" +
-          "- API_URL doğru mu? (" +
-          API_URL +
-          ")";
-        resultDiv.classList.remove("placeholder");
-      } finally {
-        submitBtn.disabled = false;
-      }
-    }
+                                    <div class="phone-bottom-row">
+                                        <div class="phone-chip-row">
+                                            <div class="chip">YKS motivasyon</div>
+                                            <div class="chip">Reels format</div>
+                                        </div>
+                                        <div class="phone-cta-mini">1 tıkla kopyala</div>
+                                    </div>
+                                </div>
 
-    form.addEventListener("submit", handleSubmit);
+                                <div class="phone-floating-badge">
+                                    <span class="phone-floating-dot"></span>
+                                    7 günde 20+ caption stoğu
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-    // Ctrl+Enter ile gönderme
-    descriptionInput.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" && event.ctrlKey) {
-        handleSubmit(event);
-      }
-    });
-  </script>
+            <!-- KİMLER İÇİN -->
+            <section class="section" id="kimler-icin">
+                <div class="container">
+                    <div class="section-header">
+                        <div class="section-eyebrow">
+                            <span class="section-eyebrow-dot"></span>
+                            Kimler kullanabilir?
+                        </div>
+                        <h2 class="section-title">Caption derdini olan herkes için.</h2>
+                        <p class="section-subtitle">
+                            Özellikle her gün içerik üretmek zorunda olup “caption’a ne yazacağım?”
+                            diyen hesaplara odaklandık.
+                        </p>
+                    </div>
+
+                    <div class="section-grid section-grid-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">👤</div>
+                                <div class="card-title">Bireysel içerik üreticileri</div>
+                            </div>
+                            <p class="card-body">
+                                Reels, TikTok veya Shorts üretiyorsan ama her videoda yeni bir caption
+                                düşünmek sana işkence gibi geliyorsa, tek tıkla 3–5 farklı alternatif
+                                oluşturabilirsin.
+                            </p>
+                            <div class="card-tag">Kişisel marka • Studygram • Vlog</div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">🏪</div>
+                                <div class="card-title">Küçük işletmeler</div>
+                            </div>
+                            <p class="card-body">
+                                Kafeler, kurslar, butik markalar… Ürün ya da hizmetini tanıtırken
+                                satış odaklı, net ve aksiyon çağrılı caption’lar üret.
+                            </p>
+                            <div class="card-tag">Kafe • Kurs • Butik • E-ticaret</div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon">📈</div>
+                                <div class="card-title">Ajanslar & sosyal medya yöneticileri</div>
+                            </div>
+                            <p class="card-body">
+                                Birden fazla müşterinin hesabını yönetiyorsan, her marka için ayrı
+                                ton ve stil kaydedip çok daha hızlı çalışabilirsin.
+                            </p>
+                            <div class="card-tag">Ajans • Freelancer • Sosyal medya uzmanı</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ÖZELLİKLER -->
+            <section class="section" id="ozellikler">
+                <div class="container">
+                    <div class="section-grid section-grid-2">
+                        <div>
+                            <div class="section-header">
+                                <div class="section-eyebrow">
+                                    <span class="section-eyebrow-dot"></span>
+                                    Özellikler
+                                </div>
+                                <h2 class="section-title">Sadece konuyu yaz, gerisini bırak.</h2>
+                                <p class="section-subtitle">
+                                    Caption Proje, Türkçe içerik ve sosyal medya dinamiğine göre
+                                    optimize edildi. Yani boş, anlamsız İngilizce çeviriler yok.
+                                </p>
+                            </div>
+
+                            <div class="feature-list">
+                                <div class="feature-item">
+                                    <div class="feature-bullet">✓</div>
+                                    <div>
+                                        <span class="feature-strong">Hazır “hook” cümleleri:</span>
+                                        İlk 2 saniyede dikkat çeken giriş cümleleri üretir.
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-bullet">✓</div>
+                                    <div>
+                                        <span class="feature-strong">Tarza göre yazım:</span>
+                                        “Samimi”, “ciddi”, “esprili”, “motivasyonel” gibi seçeneklerle
+                                        tonu sen belirlersin.
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-bullet">✓</div>
+                                    <div>
+                                        <span class="feature-strong">Hashtag önerisi:</span>
+                                        Video konuna uygun 5–15 arası hashtag önerisini hazır verir.
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-bullet">✓</div>
+                                    <div>
+                                        <span class="feature-strong">Kayıt & tekrar kullan:</span>
+                                        Beğendiğin şablonları kaydedip başka videolarda ufak
+                                        düzenlemelerle tekrar kullanabilirsin. (Yakında)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="feature-box">
+                                <strong>Örnek kullanım:</strong><br /><br />
+                                <strong>Video konusu:</strong> “Kütüphanede YKS çalışma vlogu”<br />
+                                <strong>Tarz:</strong> samimi + motivasyonel<br /><br />
+                                <strong>Caption çıktısı:</strong><br />
+                                “Bugün yine aynı masada, aynı hayalin peşindeyim. 📚<br />
+                                Soru çözdükçe stres değil, özgürlük birikiyor. Sen de
+                                çalışırken yalnız değilsin, burada beraberiz. ✨<br />
+                                Hedefini yorumlara yaz, birbirimize şahit olalım. 🚀”<br /><br />
+                                <strong>Bonus:</strong> Son satıra uygun hashtag paketi eklenir:
+                                #yks #tyt #ayt #studygram #motivasyon
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- NASIL ÇALIŞIR -->
+            <section class="section" id="nasil">
+                <div class="container">
+                    <div class="section-header">
+                        <div class="section-eyebrow">
+                            <span class="section-eyebrow-dot"></span>
+                            Nasıl çalışır?
+                        </div>
+                        <h2 class="section-title">3 adımda caption üret.</h2>
+                        <p class="section-subtitle">
+                            Kafanda ne kadar dağınık olursa olsun, arayüzde dolduracağın birkaç kutu
+                            ile net ve temiz bir caption’a dönüşüyor.
+                        </p>
+                    </div>
+
+                    <div class="steps">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-title">Video konusunu yaz</div>
+                            <p>
+                                “YKS kütüphane vlog”, “kafe tanıtım videosu”, “ürün kutu açılımı”
+                                gibi sade bir açıklama yeterli. İstersen hedef kitleni de ekleyebilirsin.
+                            </p>
+                        </div>
+
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-title">Tarz & platform seç</div>
+                            <p>
+                                Samimi / ciddi / esprili / satış odaklı gibi tarz seçeneklerinden
+                                birini; Instagram Reels, TikTok veya Shorts gibi platformu seç.
+                            </p>
+                        </div>
+
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <div class="step-title">Caption’ı kopyala & paylaş</div>
+                            <p>
+                                10–15 saniye içinde 3 farklı öneri gelir. Beğendiğini kopyalayıp
+                                ufak rötuşlarla direkt paylaşabilirsin.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FİYATLANDIRMA -->
+            <section class="section" id="fiyat">
+                <div class="container">
+                    <div class="section-header">
+                        <div class="section-eyebrow">
+                            <span class="section-eyebrow-dot"></span>
+                            Fiyatlandırma
+                        </div>
+                        <h2 class="section-title">YKS öğrencileri için beta fiyatı.</h2>
+                        <p class="section-subtitle">
+                            Bu proje YKS kitlesi düşünülerek tasarlandı. Şu an beta dönemindeyiz ve
+                            ilk gelen kullanıcılar için ekstra uygun bir fiyat açtık.
+                        </p>
+                    </div>
+
+                    <div class="pricing-grid">
+                        <!-- BETA / YKS PLANI -->
+                        <div class="price-card price-card-accent">
+                            <div class="price-label-row">
+                                <span class="price-pill">YKS Beta Plan</span>
+                                <span class="price-highlight">İlk gelen kazanır • Sınırlı kontenjan</span>
+                            </div>
+
+                            <div class="price-amount">
+                                ₺49 <span>/ ay</span>
+                            </div>
+
+                            <p class="price-desc">
+                                Her gün düzenli paylaşım yapan YKS hesapları için “caption düşünme”
+                                derdini ortadan kaldırmayı hedefleyen öğrenci dostu fiyat.
+                            </p>
+
+                            <ul class="price-list">
+                                <li>Günlük belirli sayıda caption üretimi</li>
+                                <li>YKS odağında hook + gövde + kapanış metinleri</li>
+                                <li>Türkçe hedef kitleye uygun ton ayarı</li>
+                                <li>YKS ve çalışma içeriği için hashtag önerileri</li>
+                            </ul>
+
+                            <!-- SHOPIER ÖDEME BUTONU -->
+                            <a href="https://shopier-linkin-buraya.com"
+                               target="_blank"
+                               class="btn btn-primary"
+                               style="margin-top: 0.3rem;">
+                                ₺49 / ay • Hemen başla
+                            </a>
+
+                            <p class="price-desc" style="margin-top: 0.5rem; font-size: 0.78rem;">
+                                Bu fiyat sadece beta döneminde ve sınırlı sayıda kullanıcı için geçerlidir.
+                                İlk gelenler, ileride fiyat artsa bile aynı fiyattan devam eder.
+                            </p>
+                        </div>
+
+                        <!-- İLERİDEKİ PRO PLAN (ŞİMDİLİK BİLGİLENDİRME) -->
+                        <div class="price-card">
+                            <div class="price-label-row">
+                                <span class="price-pill">Yakında</span>
+                                <span class="price-highlight">Pro & Ajans planları</span>
+                            </div>
+
+                            <div class="price-amount">
+                                ₺? <span>/ ay (planlanıyor)</span>
+                            </div>
+
+                            <p class="price-desc">
+                                YKS dışı hesaplar, küçük işletmeler ve ajanslar için daha yüksek limitli,
+                                çok hesap yönetimine uygun paketler planlanıyor.
+                            </p>
+
+                            <ul class="price-list">
+                                <li>Daha yüksek günlük caption limiti</li>
+                                <li>Birden fazla hesap için profil ayarı</li>
+                                <li>Kayıtlı şablonlar ve hazır setler</li>
+                                <li>Öncelikli destek & yeni özelliklere erken erişim</li>
+                            </ul>
+
+                            <p class="price-desc">
+                                Şu an odak tamamen YKS kitlesi. Pro planlar hazır olduğunda mevcut
+                                beta kullanıcıları ekstra avantajlı olacak.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- SSS -->
+            <section class="section" id="sss">
+                <div class="container">
+                    <div class="section-header">
+                        <div class="section-eyebrow">
+                            <span class="section-eyebrow-dot"></span>
+                            Sık sorulan sorular
+                        </div>
+                        <h2 class="section-title">Aklına takılanları hızlıca temizle.</h2>
+                        <p class="section-subtitle">
+                            Yine de merak ettiğin başka bir şey kalırsa, ileride siteye iletişim
+                            kısmı ekleyebiliriz; şimdilik beta içinden geri bildirim vermen yeterli.
+                        </p>
+                    </div>
+
+                    <div class="faq-grid">
+                        <div class="faq-item">
+                            <details>
+                                <summary>
+                                    Caption’lar tamamen Türkçe mi yazılıyor?
+                                    <span class="faq-icon">⌄</span>
+                                </summary>
+                                <div class="faq-answer">
+                                    Evet, odak tamamen Türkçe kitlen için doğal ve akıcı caption üretmek.
+                                    İngilizce’den çeviri gibi duran robotik cümleler yerine, günlük
+                                    konuşma diline yakın metinler hedefleniyor.
+                                </div>
+                            </details>
+                        </div>
+
+                        <div class="faq-item">
+                            <details>
+                                <summary>
+                                    Hashtag’leri direkt kopyalayıp kullanabilir miyim?
+                                    <span class="faq-icon">⌄</span>
+                                </summary>
+                                <div class="faq-answer">
+                                    Evet, ama her zaman ufak düzenleme yapmanı öneriyoruz. Nişine ve
+                                    hesabının büyüklüğüne göre bazı hashtag’leri değiştirmen daha iyi
+                                    performans verebilir.
+                                </div>
+                            </details>
+                        </div>
+
+                        <div class="faq-item">
+                            <details>
+                                <summary>
+                                    Ücretsiz kalacak mı?
+                                    <span class="faq-icon">⌄</span>
+                                </summary>
+                                <div class="faq-answer">
+                                    Beta sürecinde ücretsiz kalacak. Sonrasında mantıklı, öğrenci dostu
+                                    ve küçük işletmeleri zorlamayacak bir abonelik planı açmayı
+                                    düşünüyoruz. Beta kullanıcıları için ekstra avantajlar planlanıyor.
+                                </div>
+                            </details>
+                        </div>
+
+                        <div class="faq-item">
+                            <details>
+                                <summary>
+                                    Hangi cihazlardan kullanabilirim?
+                                    <span class="faq-icon">⌄</span>
+                                </summary>
+                                <div class="faq-answer">
+                                    Tarayıcı üzerinden çalışan bir web uygulaması olduğu için bilgisayar,
+                                    tablet ve telefondan kullanabilirsin. Tasarımı özellikle mobilde rahat
+                                    kullanılacak şekilde planlıyoruz.
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- FOOTER – BUNU DA app.html'DE AYNEN KULLAN -->
+        <footer>
+            <div class="container">
+                <div class="footer-inner">
+                    <div>© <span id="year"></span> Caption Proje. Tüm hakları saklıdır.</div>
+                    <div class="footer-links">
+                        <span class="footer-link">Kullanım koşulları (yakında)</span>
+                        <span class="footer-link">Gizlilik (yakında)</span>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Dinamik yıl
+        document.getElementById("year").textContent = new Date().getFullYear();
+    </script>
 </body>
 </html>
