@@ -10,7 +10,7 @@ from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from database import SessionLocal
 from models import User
-from auth_utils import hash_password, verify_password, create_access_token, decode_token
+from auth import hash_password, verify_password, create_access_token, decode_token
 from pydantic import BaseModel, EmailStr
 from fastapi.security import OAuth2PasswordBearer
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")  # sadece dokumantasyon icin
