@@ -502,12 +502,12 @@
         </div>
 
         <div class="nav-links">
-          <a href="/auth.html" class="nav-link active">Giriş / Kayıt</a>
+          <a href="auth.html" class="nav-link active">Giriş / Kayıt</a>
         </div>
 
         <div class="nav-right">
           <div class="nav-badge">YKS Beta • ₺49/ay</div>
-          <a href="/#fiyat" class="btn">Fiyatı gör</a>
+          <a href="#fiyat" class="btn">Fiyatı gör</a>
         </div>
       </nav>
     </div>
@@ -616,10 +616,14 @@
 </div>
 
 <script>
-  // Backend URL
-  const API_BASE = "https://caption-generator-production-b824.up.railway.app"; // BURAYI kendi URL'inle degistir
+  // Ortama göre backend URL'i belirle
+  const API_BASE =
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1"
+      ? "http://127.0.0.1:8000"
+      : "https://caption-generator-production-b824.up.railway.app";
 
-  // Yil
+  // Yıl
   document.getElementById("year").textContent = new Date().getFullYear();
 
   const tabs = document.querySelectorAll(".auth-tab");
@@ -640,6 +644,7 @@
     }
     errorBox.textContent = message;
     errorBox.style.display = "block";
+    successBox.style.display = "none";
   }
 
   function showSuccess(message) {
@@ -650,6 +655,7 @@
     }
     successBox.textContent = message;
     successBox.style.display = "block";
+    errorBox.style.display = "none";
   }
 
   function setMode(nextMode) {
@@ -665,14 +671,14 @@
 
     if (mode === "register") {
       passwordConfirmField.style.display = "flex";
-      submitBtn.textContent = "Kayit ol ve devam et";
-      switchCopy.textContent = "Zaten hesabin var mi?";
-      switchBtn.textContent = "Giris yap";
+      submitBtn.textContent = "Kayıt ol ve devam et";
+      switchCopy.textContent = "Zaten hesabın var mı?";
+      switchBtn.textContent = "Giriş yap";
     } else {
       passwordConfirmField.style.display = "none";
-      submitBtn.textContent = "Giris yap ve devam et";
-      switchCopy.textContent = "Hesabin yok mu?";
-      switchBtn.textContent = "Kayit ol";
+      submitBtn.textContent = "Giriş yap ve devam et";
+      switchCopy.textContent = "Hesabın yok mu?";
+      switchBtn.textContent = "Kayıt ol";
     }
 
     showError("");
@@ -704,16 +710,16 @@
         try {
           data = await res.json();
         } catch (e) {}
-        const msg = data.detail || "Kayit basarisiz.";
+        const msg = data.detail || "Kayıt başarısız.";
         showError(msg);
         return false;
       }
 
-      showSuccess("Kayit basarili. Giris yapiliyor...");
+      showSuccess("Kayıt başarılı. Giriş yapılıyor...");
       return true;
     } catch (err) {
       console.error(err);
-      showError("Sunucuya baglanirken hata olustu.");
+      showError("Sunucuya bağlanırken hata oluştu.");
       return false;
     }
   }
@@ -737,7 +743,7 @@
         try {
           data = await res.json();
         } catch (e) {}
-        const msg = data.detail || "Giris basarisiz.";
+        const msg = data.detail || "Giriş başarısız.";
         showError(msg);
         return;
       }
@@ -747,14 +753,15 @@
       localStorage.setItem("ls_token", data.access_token);
       localStorage.setItem("ls_email", email);
 
-      showSuccess("Giris basarili. Uygulamaya yonlendiriliyorsun...");
+      showSuccess("Giriş başarılı. Uygulamaya yönlendiriliyorsun...");
 
       setTimeout(() => {
-        window.location.href = "https://lastersumcaption.netlify.app/app.html";
+        // Hem localhost'ta hem Netlify'da aynı domaindeki /app.html'e gider
+        window.location.href = "app.html";
       }, 600);
     } catch (err) {
       console.error(err);
-      showError("Sunucuya baglanirken hata olustu.");
+      showError("Sunucuya bağlanırken hata oluştu.");
     }
   }
 
@@ -768,39 +775,40 @@
     const passwordConfirm = document.getElementById("passwordConfirm").value.trim();
 
     if (!email || !password || (mode === "register" && !passwordConfirm)) {
-      showError("Lutfen zorunlu alanlari doldur.");
+      showError("Lütfen zorunlu alanları doldur.");
       return;
     }
 
     if (mode === "register" && password !== passwordConfirm) {
-      showError("Sifreler birbiriyle uyusmuyor.");
+      showError("Şifreler birbiriyle uyuşmuyor.");
       return;
     }
 
     if (password.length < 8) {
-      showError("Sifre en az 8 karakter olmali.");
+      showError("Şifre en az 8 karakter olmalı.");
       return;
     }
+
+    submitBtn.disabled = true;
 
     if (mode === "register") {
       const ok = await registerUser(email, password);
       if (ok) {
-        // Kayit basariliysa otomatik login
         await loginUser(email, password);
       }
     } else {
       await loginUser(email, password);
     }
+
+    submitBtn.disabled = false;
   });
 
-  // Sayfa acildiginda zaten token varsa direkt app'e atmak istersen:
+  // Sayfa açıldığında zaten token varsa istersen direkt app'e at
   (function checkLoggedIn() {
     const token = localStorage.getItem("ls_token");
     if (token) {
-      // Kullanici zaten login, direkt app'e al
-      // Istersen burada /auth/me ile token dogrulama da yapabilirsin
-      // simdilik direkt yonlendirelim
-      // window.location.href = "https://lastersumcaption.netlify.app/app.html";
+      // İstersen burada /auth/me ile token doğrulama yapabilirsin
+      // window.location.href = "/app.html";
     }
   })();
 </script>

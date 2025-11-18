@@ -1,5 +1,4 @@
 # auth.py
-
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -11,25 +10,24 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from models import User
-from schemas import UserCreate, UserPublic, Token
+from schemas import UserCreate, Token, UserPublic
 
-# Normalde bunları .env dosyasına koyarsın
+# ENV yerine şimdilik sabit key
 SECRET_KEY = "CHANGE_THIS_SECRET_KEY_123456"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 gün
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 router = APIRouter()
 
 
-# ---------------------------------------------------------
-# HELPERS
-# ---------------------------------------------------------
+# ------------------------------------------------------------
+# Password helpers
+# ------------------------------------------------------------
 
-def get_password_hash(password: str) -> str:
+def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
 
@@ -37,12 +35,20 @@ def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+# ------------------------------------------------------------
+# JWT helpers
+# ------------------------------------------------------------
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
+
+# ------------------------------------------------------------
+# DB helpers
+# ------------------------------------------------------------
 
 def get_user_by_email(db: Session, email: str) -> Optional[User]:
     return db.query(User).filter(User.email == email).first()
@@ -57,23 +63,24 @@ def authenticate_user(db: Session, email: str, password: str) -> Optional[User]:
     return user
 
 
-# ---------------------------------------------------------
-# CURRENT USER
-# ---------------------------------------------------------
+# ------------------------------------------------------------
+# AUTH DEPENDENCY → tam olarak api.py'nin beklediği fonksiyon
+# ------------------------------------------------------------
 
 async def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
 ) -> User:
+
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Gecersiz kimlik bilgileri",
+        detail="Gecersiz kimlik bilgileri.",
         headers={"WWW-Authenticate": "Bearer"},
     )
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")      # Token'da sub = email
+        email: str = payload.get("sub")
         if email is None:
             raise credentials_exception
     except JWTError:
@@ -86,24 +93,19 @@ async def get_current_user(
     return user
 
 
-# ---------------------------------------------------------
-# ENDPOINTS
-# ---------------------------------------------------------
+# ------------------------------------------------------------
+# ROUTES
+# ------------------------------------------------------------
 
 @router.post("/register", response_model=UserPublic)
-def register_user(user_in: UserCreate, db: Session = Depends(get_db)):
+def register(user_in: UserCreate, db: Session = Depends(get_db)):
     existing = get_user_by_email(db, user_in.email)
     if existing:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Bu email ile kayitli kullanici zaten var.",
-        )
+        raise HTTPException(status_code=400, detail="Bu email ile kayıtlı kullanıcı var.")
 
-    hashed_pw = get_password_hash(user_in.password)
-    user = User(
-        email=user_in.email,
-        hashed_password=hashed_pw,
-    )
+    hashed_pw = hash_password(user_in.password)
+    user = User(email=user_in.email, hashed_password=hashed_pw)
+
     db.add(user)
     db.commit()
     db.refresh(user)
@@ -112,21 +114,16 @@ def register_user(user_in: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=Token)
-def login(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db),
-):
-    user = authenticate_user(db, form_data.username, form_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Yanlis email veya sifre",
-        )
+def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = authenticate_user(db, form.username, form.password)
 
-    access_token = create_access_token({"sub": user.email})
-    return Token(access_token=access_token, token_type="bearer")
+    if not user:
+        raise HTTPException(status_code=400, detail="Yanlis email veya sifre.")
+
+    token = create_access_token({"sub": user.email})
+    return Token(access_token=token, token_type="bearer")
 
 
 @router.get("/me", response_model=UserPublic)
-def read_me(current_user: User = Depends(get_current_user)):
+def me(current_user: User = Depends(get_current_user)):
     return current_user

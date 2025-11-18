@@ -279,7 +279,7 @@
       </div>
       <div class="model-pill">
         <span class="model-dot"></span>
-        <span>Railway API · /generate</span>
+        <span id="backend-label">API · /generate</span>
       </div>
     </header>
 
@@ -332,137 +332,133 @@
   </div>
 
   <script>
-  // 🔐 Auth guard: token yoksa /auth'a at
-  (function () {
-    const token = localStorage.getItem("ls_token");
-    if (!token) {
-      window.location.href = "/auth";
-    }
-  })();
-
-  const form = document.getElementById("caption-form");
-  const nicheInput = document.getElementById("niche");
-  const descriptionInput = document.getElementById("description");
-  const resultDiv = document.getElementById("result");
-  const statusSpan = document.getElementById("status");
-  const submitBtn = document.getElementById("submit-btn");
-
-  // 🔧 Backend /generate endpoint adresin
-  // Gelistirme asamasinda:
-  // const API_URL = "http://localhost:8000/generate";
-  // Production'da:
-  const API_URL = "https://senin-backend-adresin.com/generate"; // BURAYI duzelt
-
-  async function handleSubmit(event) {
-    if (event) event.preventDefault();
-
-    const niche = nicheInput.value.trim();
-    const description = descriptionInput.value.trim();
-
-    if (!description) {
-      statusSpan.textContent = "Aciklama bos olamaz.";
-      statusSpan.classList.add("error");
-      resultDiv.textContent = "Lutfen en azindan kisa bir aciklama yaz.";
-      resultDiv.classList.remove("placeholder");
-      return;
-    }
-
-    // Her istegin basinda token'i cek
-    const token = localStorage.getItem("ls_token");
-    if (!token) {
-      window.location.href = "/auth";
-      return;
-    }
-
-const response = await fetch(API_URL + "/generate", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "Authorization": "Bearer " + token,
-  },
-  body: JSON.stringify({ niche, description }),
-});
-
-    submitBtn.disabled = true;
-    statusSpan.textContent = "Uretiliyor...";
-    statusSpan.classList.remove("error");
-    resultDiv.textContent = "";
-    resultDiv.classList.remove("placeholder");
-
-    try {
-      const response = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + token,
-        },
-        body: JSON.stringify({ niche, description }),
-      });
-
-      // Token süresi dolmuş vb. durum
-      if (response.status === 401) {
-        statusSpan.textContent = "Oturumun sona ermis, yeniden giris yap.";
-        statusSpan.classList.add("error");
-        resultDiv.textContent =
-          "Guvensiz veya suresi dolmus bir oturum tespit edildi. Giris sayfasina yonlendiriliyorsun.";
-
-        localStorage.removeItem("ls_token");
-        localStorage.removeItem("ls_email");
-
-        setTimeout(() => {
-          window.location.href = "/auth";
-        }, 1000);
-        return;
+    // 🔐 Auth guard: token yoksa /auth.html'e at
+    (function () {
+      const token = localStorage.getItem("ls_token");
+      if (!token) {
+        window.location.href = "/auth.html";
       }
+    })();
 
-      if (!response.ok) {
-        const text = await response.text();
-        statusSpan.textContent = "Sunucu hatasi.";
+    const form = document.getElementById("caption-form");
+    const nicheInput = document.getElementById("niche");
+    const descriptionInput = document.getElementById("description");
+    const resultDiv = document.getElementById("result");
+    const statusSpan = document.getElementById("status");
+    const submitBtn = document.getElementById("submit-btn");
+    const backendLabel = document.getElementById("backend-label");
+
+    // Backend base URL: lokal vs production otomatik
+    const API_BASE =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1"
+        ? "http://127.0.0.1:8000"
+        : "https://caption-generator-production-b824.up.railway.app";
+
+    const API_URL = API_BASE + "/generate";
+
+    if (backendLabel) {
+      backendLabel.textContent = "API · " + API_URL.replace(/^https?:\/\//, "");
+    }
+
+    async function handleSubmit(event) {
+      if (event) event.preventDefault();
+
+      const niche = nicheInput.value.trim();
+      const description = descriptionInput.value.trim();
+
+      if (!description) {
+        statusSpan.textContent = "Açıklama boş olamaz.";
         statusSpan.classList.add("error");
-        resultDiv.textContent =
-          "Sunucu beklenmeyen bir yanit verdi.\n\nHTTP " +
-          response.status +
-          ":\n" +
-          text;
+        resultDiv.textContent = "Lütfen en azından kısa bir açıklama yaz.";
         resultDiv.classList.remove("placeholder");
         return;
       }
 
-      const data = await response.json();
-
-      if (data && data.result) {
-        resultDiv.textContent = data.result;
-        resultDiv.classList.remove("placeholder");
-        statusSpan.textContent = "Hazir 🍓";
-        statusSpan.classList.remove("error");
-      } else {
-        statusSpan.textContent = "Beklenmeyen cevap.";
-        statusSpan.classList.add("error");
-        resultDiv.textContent = "API'den 'result' alani gelmedi.";
-        resultDiv.classList.remove("placeholder");
+      const token = localStorage.getItem("ls_token");
+      if (!token) {
+        window.location.href = "/auth.html";
+        return;
       }
-    } catch (error) {
-      console.error(error);
-      statusSpan.textContent = "Baglanti hatasi.";
-      statusSpan.classList.add("error");
-      resultDiv.textContent =
-        "API'ye ulasilamadi.\n" +
-        "- API_URL dogru mu? (" + API_URL + ")";
+
+      submitBtn.disabled = true;
+      statusSpan.textContent = "Üretiliyor...";
+      statusSpan.classList.remove("error");
+      resultDiv.textContent = "";
       resultDiv.classList.remove("placeholder");
-    } finally {
-      submitBtn.disabled = false;
+
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token,
+          },
+          body: JSON.stringify({ niche, description }),
+        });
+
+        if (response.status === 401) {
+          statusSpan.textContent = "Oturumun sona ermiş, yeniden giriş yap.";
+          statusSpan.classList.add("error");
+          resultDiv.textContent =
+            "Geçersiz veya süresi dolmuş bir oturum tespit edildi. Giriş sayfasına yönlendiriliyorsun.";
+
+          localStorage.removeItem("ls_token");
+          localStorage.removeItem("ls_email");
+
+          setTimeout(() => {
+            window.location.href = "/auth.html";
+          }, 1000);
+          return;
+        }
+
+        if (!response.ok) {
+          const text = await response.text();
+          statusSpan.textContent = "Sunucu hatası.";
+          statusSpan.classList.add("error");
+          resultDiv.textContent =
+            "Sunucu beklenmeyen bir yanıt verdi.\n\nHTTP " +
+            response.status +
+            ":\n" +
+            text;
+          resultDiv.classList.remove("placeholder");
+          return;
+        }
+
+        const data = await response.json();
+
+        if (data && data.result) {
+          resultDiv.textContent = data.result;
+          resultDiv.classList.remove("placeholder");
+          statusSpan.textContent = "Hazır 🍓";
+          statusSpan.classList.remove("error");
+        } else {
+          statusSpan.textContent = "Beklenmeyen cevap.";
+          statusSpan.classList.add("error");
+          resultDiv.textContent = "API'den 'result' alanı gelmedi.";
+          resultDiv.classList.remove("placeholder");
+        }
+      } catch (error) {
+        console.error(error);
+        statusSpan.textContent = "Bağlantı hatası.";
+        statusSpan.classList.add("error");
+        resultDiv.textContent =
+          "API'ye ulaşılamadı.\n" +
+          "- API_URL doğru mu? (" + API_URL + ")";
+        resultDiv.classList.remove("placeholder");
+      } finally {
+        submitBtn.disabled = false;
+      }
     }
-  }
 
-  form.addEventListener("submit", handleSubmit);
+    form.addEventListener("submit", handleSubmit);
 
-  // Ctrl+Enter ile gonderme
-  descriptionInput.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" && event.ctrlKey) {
-      handleSubmit(event);
-    }
-  });
-</script>
-
+    // Ctrl+Enter ile gönderme
+    descriptionInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && event.ctrlKey) {
+        handleSubmit(event);
+      }
+    });
+  </script>
 </body>
 </html>

@@ -1,24 +1,15 @@
-# schemas.py
 from pydantic import BaseModel, EmailStr
 
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
 
-class UserBase(BaseModel):
+class UserPublic(BaseModel):
+    id: int
     email: EmailStr
 
-
-class UserCreate(UserBase):
-    password: str
-
-
-class UserLogin(UserBase):
-    password: str
-
-
-class UserPublic(UserBase):
-    id: int
-
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class Token(BaseModel):
