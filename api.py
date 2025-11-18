@@ -2,7 +2,7 @@
 import os
 from datetime import date
 
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -84,6 +84,36 @@ Video/Post aciklamasi:
 def root():
     return {"status": "ok", "message": "Caption & Hashtag API calisiyor."}
 
+@app.post("/admin/set-plan")
+def admin_set_plan(
+    email: str,
+    plan: str,
+    db: Session = Depends(get_db),
+    admin_secret: str = Header(None, alias="x-admin-secret"),
+):
+    # Güvenlik
+    real_secret = os.getenv("ADMIN_SECRET")
+    if admin_secret != real_secret:
+        raise HTTPException(status_code=401, detail="Yetkisiz erişim")
+
+    # Kullanıcı bul
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+
+    # Plan güncelle
+    if plan not in ["free", "pro"]:
+        raise HTTPException(status_code=400, detail="Plan 'free' veya 'pro' olmalı")
+
+    user.plan = plan
+    db.commit()
+    db.refresh(user)
+
+    return {
+        "status": "ok",
+        "email": user.email,
+        "plan": user.plan,
+    }
 
 @app.post("/generate", response_model=GenerateResponse)
 def generate(
