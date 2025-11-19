@@ -1,9 +1,9 @@
 # api.py
 import os
 from typing import List, Optional
-from datatime import date
-from models import User, CaptionUsage
-from fastapi import FastAPI, Depends, HTTPException, Header
+from datetime import date
+
+from fastapi import FastAPI, Depends, HTTPException, Header, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
@@ -11,7 +11,7 @@ from openai import OpenAI
 from dotenv import load_dotenv
 
 from database import Base, engine, get_db
-from models import User
+from models import User, CaptionUsage
 from auth import router as auth_router, get_current_user
 from prompts import SYSTEM_PROMPT
 
