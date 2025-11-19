@@ -224,6 +224,25 @@ def admin_list_users(
     )
 
     return users
+@app.get("/admin/users")
+def admin_get_users(
+    db: Session = Depends(get_db),
+    admin_secret: str = Header(None, alias="x-admin-secret")
+):
+    real_secret = os.getenv("ADMIN_SECRET")
+    if admin_secret != real_secret:
+        raise HTTPException(status_code=401, detail="Yetkisiz erişim")
+
+    users = db.query(User).all()
+    return [
+        {
+            "id": u.id,
+            "email": u.email,
+            "plan": u.plan,
+            "created_at": str(u.created_at)
+        }
+        for u in users
+    ]
 
 
 @app.get("/admin/users/{user_id}", response_model=UserAdminOut)
