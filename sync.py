@@ -2,27 +2,34 @@ import sqlite3
 import requests
 
 API_URL = "https://caption-generator-production-b824.up.railway.app/admin/users"
-ADMIN_SECRET = "akilalmazmuratpususu61"
+ADMIN_SECRET = "akilalmazmuratpususu61"  # .env'de ne koyduysan aynısı
 
-# Production Users çek
+# 1) Production'dan user listesi çek
 res = requests.get(API_URL, headers={"x-admin-secret": ADMIN_SECRET})
+res.raise_for_status()
 users = res.json()
 
-# Local DB aç
+print(f"Production'dan {len(users)} kullanıcı geldi.")
+
+# 2) Local caption.db'ye bağlan
 conn = sqlite3.connect("caption.db")
 cursor = conn.cursor()
 
-# Gerekliyse tabloyu sıfırla
+# 3) İstersen önce tabloyu temizle (tam senkronizasyon için)
+# Çok kritik: tablo adın gerçekten "users" mı, models.py ile aynı mı?
 cursor.execute("DELETE FROM users")
 
-# Kullanıcıları ekle
+# 4) Kullanıcıları tek tek ekle
 for u in users:
-    cursor.execute("""
-        INSERT INTO users (id, email, plan, created_at)
-        VALUES (?, ?, ?, ?)
-    """, (u["id"], u["email"], u["plan"], u["created_at"]))
+    cursor.execute(
+        """
+        INSERT INTO users (id, email, plan)
+        VALUES (?, ?, ?)
+        """,
+        (u["id"], u["email"], u.get("plan", "free")),
+    )
 
 conn.commit()
 conn.close()
 
-print("Senkronizasyon tamamlandı.")
+print("Senkronizasyon bitti, local caption.db güncellendi.")
