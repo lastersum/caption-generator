@@ -16,7 +16,8 @@ class User(Base):
 
     # plan: "free" veya "pro"
     plan = Column(String, nullable=False, default="free")
-
+    device_id = Column(String, nullable=True, index=True)
+    register_ip = Column(String, nullable=True, index=True)  # İstersen IP de kalsın
     # Iliski
     usages = relationship("CaptionUsage", back_populates="user")
 

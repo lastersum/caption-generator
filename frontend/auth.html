@@ -616,6 +616,19 @@
 </div>
 
 <script>
+  // Cihaza özel ID (localStorage'da saklanır)
+let deviceId = localStorage.getItem("ls_device_id");
+if (!deviceId) {
+  // Modern tarayıcılar için:
+  if (window.crypto && window.crypto.randomUUID) {
+    deviceId = crypto.randomUUID();
+  } else {
+    // Fallback
+    deviceId = "dev-" + Math.random().toString(36).slice(2) + Date.now();
+  }
+  localStorage.setItem("ls_device_id", deviceId);
+}
+
   // Ortama göre backend URL'i belirle
   const API_BASE =
     window.location.hostname === "localhost" ||
@@ -696,33 +709,38 @@
   });
 
   async function registerUser(email, password) {
-    try {
-      const res = await fetch(API_BASE + "/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
+  try {
+    const res = await fetch(API_BASE + "/auth/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        password,
+        device_id: deviceId,   // <-- BURADA GÖNDER
+      }),
+    });
 
-      if (!res.ok) {
-        let data = {};
-        try {
-          data = await res.json();
-        } catch (e) {}
-        const msg = data.detail || "Kayıt başarısız.";
-        showError(msg);
-        return false;
-      }
-
-      showSuccess("Kayıt başarılı. Giriş yapılıyor...");
-      return true;
-    } catch (err) {
-      console.error(err);
-      showError("Sunucuya bağlanırken hata oluştu.");
+    if (!res.ok) {
+      let data = {};
+      try {
+        data = await res.json();
+      } catch (e) {}
+      const msg = data.detail || "Kayıt başarısız.";
+      showError(msg);
       return false;
     }
+
+    showSuccess("Kayıt başarılı. Giriş yapılıyor...");
+    return true;
+  } catch (err) {
+    console.error(err);
+    showError("Sunucuya bağlanırken hata oluştu.");
+    return false;
   }
+}
+
 
   async function loginUser(email, password) {
     try {

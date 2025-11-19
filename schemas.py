@@ -1,8 +1,10 @@
 from pydantic import BaseModel, EmailStr
+from typing import Optional
 
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
+    device_id: Optional[str] = None
 
 class UserPublic(BaseModel):
     id: int
